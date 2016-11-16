@@ -39,7 +39,7 @@ type MinQuery interface {
 	CursorCodec(cc CursorCodec) MinQuery
 
 	// All retrieves all documents from the result set into the provided slice.
-	// cursFields lists the fields (in order) to be used to generate
+	// cursorFields lists the fields (in order) to be used to generate
 	// the returned cursor.
 	All(result interface{}, cursorFields ...string) (cursor string, err error)
 }
