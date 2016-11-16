@@ -32,7 +32,9 @@ Note that when calling MinQuery.All(), you have to provide the name
 of the cursor fields, this will be used to build the cursor data
 (and ultimately the cursor string) from.
 
-Note #2: if you're retrieving partial results (MinQuery.Select()), you have to include all the fields that are part of the cursor (the index), else MinQuery.All() will not be able to create the proper cursor value.
+Note #2: if you're retrieving partial results (MinQuery.Select()),
+you have to include all the fields that are part of the cursor (the index),
+else MinQuery.All() will not be able to create the proper cursor value.
 
 */
 package minquery
