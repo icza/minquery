@@ -76,3 +76,5 @@ The above solution using `minquery` looks like this:
 And that's all. `newCursor` is the cursor to be used to fetch the next batch.
 
 Note that when calling `MinQuery.All()`, you have to provide the name of the cursor fields, this will be used to build the cursor data (and ultimately the cursor string) from.
+
+Note #2: if you're retrieving partial results (`MinQuery.Select()`), you have to include all the fields that are part of the cursor (the index), else `MinQuery.All()` will not be able to create the proper cursor value.
