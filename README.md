@@ -55,11 +55,11 @@ But there is a solution. The [`mgo.Database`](https://godoc.org/gopkg.in/mgo.v2#
 
 Starting with MongoDB 3.2, a new [`find`](https://docs.mongodb.com/manual/reference/command/find/) command is available which can be used to execute queries, and it supports specifying the `min` argument that denotes the first index entry to start listing results from.
 
-Good. What we need to do is after each batch (documents of a page) generate the `min` document which must contain the values of the index entry that was used to execute the query, and then the next batch (the documents of the next page) can be acquired by setting this min index entry prior to executing the query.
+Good. What we need to do is after each batch (documents of a page) generate the `min` document from the last document of the query result, which must contain the values of the index entry that was used to execute the query, and then the next batch (the documents of the next page) can be acquired by setting this min index entry prior to executing the query.
 
 This index entry –let's call it _cursor_ from now on– may be encoded to a `string` and sent to the client along with the results, and when the client wants the next page, he sends back the _cursor_ saying he wants results starting after this cursor.
 
-And this is where `minquery` comes into the picture. It provides a wrapper to configure and execute a MongoDB `find` command, allowing you to specify a cursor, and after executing the query, it gives you back the new cursor to be used to query the next batch of results.
+And this is where `minquery` comes into the picture. It provides a wrapper to configure and execute a MongoDB `find` command, allowing you to specify a cursor, and after executing the query, it gives you back the new cursor to be used to query the next batch of results. The wrapper is the [`MinQuery`](https://godoc.org/github.com/icza/minquery#MinQuery) type which is very similar to [`mgo.Query`](https://godoc.org/gopkg.in/mgo.v2#Query) but it supports specifying MongoDB's `min` via the `MinQuery.Cursor()` method.
 
 The above solution using `minquery` looks like this:
 
@@ -75,6 +75,6 @@ The above solution using `minquery` looks like this:
 
 And that's all. `newCursor` is the cursor to be used to fetch the next batch.
 
-Note that when calling `MinQuery.All()`, you have to provide the name of the cursor fields, this will be used to build the cursor data (and ultimately the cursor string) from.
+Note #1: When calling `MinQuery.All()`, you have to provide the names of the cursor fields, this will be used to build the cursor data (and ultimately the cursor string) from.
 
-Note #2: if you're retrieving partial results (`MinQuery.Select()`), you have to include all the fields that are part of the cursor (the index), else `MinQuery.All()` will not be able to create the proper cursor value.
+Note #2: If you're retrieving partial results (by using `MinQuery.Select()`), you have to include all the fields that are part of the cursor (the index entry) even if you don't intend to use them directly, else `MinQuery.All()` will not have all the values of the cursor fields, and so it will not be able to create the proper cursor value.
