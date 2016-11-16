@@ -33,7 +33,7 @@ This however becomes slow if the page number increases, as MongoDB can't just "m
 
 MongoDB provides the right solution: If the query operates on an index (it has to work on an index), [`cursor.min()`](https://docs.mongodb.com/manual/reference/method/cursor.min/) can be used to specify the first _index entry_ to start listing results from.
 
-This SO answer shows how it can be done using a mongo client: [How to do pagination using range queries in MongoDB?](http://stackoverflow.com/questions/5525304/how-to-do-pagination-using-range-queries-in-mongodb/5526907#5526907)
+This Stack Overflow answer shows how it can be done using a mongo client: [How to do pagination using range queries in MongoDB?](http://stackoverflow.com/questions/5525304/how-to-do-pagination-using-range-queries-in-mongodb/5526907#5526907)
 
 There is one problem though: the `mgo.v2` package has no support specifying this `min()`.
 
@@ -41,7 +41,7 @@ There is one problem though: the `mgo.v2` package has no support specifying this
 
 Unfortunately the [`mgo.v2`](https://godoc.org/gopkg.in/mgo.v2) driver does not provide API calls to specify [`cursor.min()`](https://docs.mongodb.com/manual/reference/method/cursor.min/).
 
-But there is a solution. The [`mgo.Database`](https://godoc.org/gopkg.in/mgo.v2#Database) type provides a [`Database.Run()`](https://godoc.org/gopkg.in/mgo.v2#Database.Run) method to run any MongoDB commands. The available commands and their doc can be found here: [Database commands](https://docs.mongodb.com/manual/reference/command/)
+But there is a solution. The [`mgo.Database`](https://godoc.org/gopkg.in/mgo.v2#Database) type provides a [`Database.Run()`](https://godoc.org/gopkg.in/mgo.v2#Database.Run) method to run any MongoDB commands. The available commands and their documentation can be found here: [Database commands](https://docs.mongodb.com/manual/reference/command/)
 
 Starting with MongoDB 3.2, a new [`find`](https://docs.mongodb.com/manual/reference/command/find/) command is available which can be used to execute queries, and it supports specifying the `min` argument that denotes the first index entry to start listing results from.
 
@@ -50,3 +50,19 @@ Good. What we need to do is after each batch (documents of a page) generate the 
 This index entry –let's call it _cursor_ from now on– may be encoded to a `string` and sent to the client along with the results, and when the client wants the next page, he sends back the _cursor_ saying he wants results starting after this cursor.
 
 And this is where `minquery` comes into the picture. It provides a wrapper to configure and execute a MongoDB `find` command, allowing you to specify a cursor, and after executing the query, it gives you back the new cursor to be used to query the next batch of results.
+
+The above solution using `minquery` looks like this:
+
+    q := minquery.New(session.DB(""), "users", bson.M{"country" : "USA"}).
+        Sort("name", "_id").Limit(10)
+    // If this is not the first page, set cursor:
+    if cursor := getLastCursor(); cursor != "" {
+        q = q.Cursor(cursor)
+    }
+
+    var users []*User
+    newCursor, err := q.All(&users, "country", "name", "_id")
+
+And that's all. `newCursor` is the cursor to be used to fetch the next batch.
+
+Note that when calling `MinQuery.All()`, you have to provide the name of the cursor fields, this will be used to build the cursor data (and ultimately the cursor string) from.
