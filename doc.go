@@ -1,7 +1,7 @@
 /*
 
-Package minquery provides an efficient mgo-like Query type that supports
-MongoDB query pagination (cursors to continue listing documents where
+Package minquery provides a mgo-like Query type called MinQuery, which supports
+efficient query pagination (cursors to continue listing documents where
 we left off).
 
 Example using MinQuery
