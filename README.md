@@ -55,7 +55,7 @@ But there is a solution. The [`mgo.Database`](https://godoc.org/gopkg.in/mgo.v2#
 
 Starting with MongoDB 3.2, a new [`find`](https://docs.mongodb.com/manual/reference/command/find/) command is available which can be used to execute queries, and it supports specifying the `min` argument that denotes the first index entry to start listing results from.
 
-Good. What we need to do is after each batch (documents of a page) generate the `min` document which must contain the values of the index entry that was used to execute the query, and then the next batch (the documents of the next page) can be acquired by setting this index entry prior to executing the query.
+Good. What we need to do is after each batch (documents of a page) generate the `min` document which must contain the values of the index entry that was used to execute the query, and then the next batch (the documents of the next page) can be acquired by setting this min index entry prior to executing the query.
 
 This index entry –let's call it _cursor_ from now on– may be encoded to a `string` and sent to the client along with the results, and when the client wants the next page, he sends back the _cursor_ saying he wants results starting after this cursor.
 
