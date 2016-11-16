@@ -1,5 +1,6 @@
 // Package minquery provides an efficient mgo-like Query type that supports
-// MongoDB pagination (cursors to continue listing documents where we left off).
+// MongoDB query pagination (cursors to continue listing documents where
+// we left off).
 package minquery
 
 import (
@@ -86,9 +87,10 @@ type minQuery struct {
 // New returns a new MinQuery.
 func New(db *mgo.Database, coll string, query interface{}) MinQuery {
 	return &minQuery{
-		db:     db,
-		coll:   coll,
-		filter: query,
+		db:          db,
+		coll:        coll,
+		filter:      query,
+		cursorCodec: DefaultCursorCodec,
 	}
 }
 
@@ -219,7 +221,7 @@ func (mq *minQuery) All(result interface{}, cursorFields ...string) (cursor stri
 var DefaultCursorCodec cursorCodec
 
 // cursorCodec is a default implementation of CursorCodec which produces
-// web-safe cursor strings by first marshalling the cursor data using
+// web-safe cursor strings by first marshaling the cursor data using
 // bson.Marshal(), then using base64.RawURLEncoding.
 type cursorCodec struct{}
 
