@@ -35,6 +35,16 @@ MongoDB provides the right solution: If the query operates on an index (it has t
 
 This Stack Overflow answer shows how it can be done using a mongo client: [How to do pagination using range queries in MongoDB?](http://stackoverflow.com/questions/5525304/how-to-do-pagination-using-range-queries-in-mongodb/5526907#5526907)
 
+Note: the required index for the above query would be:
+
+    db.users.createIndex(
+        {
+            country: 1,
+            name: 1,
+            _id: 1
+        }
+    )
+
 There is one problem though: the `mgo.v2` package has no support specifying this `min()`.
 
 ## Introducing `minquery`
