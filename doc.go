@@ -6,7 +6,7 @@ we left off).
 
 Example using MinQuery
 
-Let's say we have a users collection in MongoDB modeled with this Go `struct`:
+Let's say we have a users collection in MongoDB modeled with this Go struct:
 
     type User struct {
         ID      bson.ObjectID `bson:"_id"`
