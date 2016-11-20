@@ -66,6 +66,7 @@ The above solution using `minquery` looks like this:
     q := minquery.New(session.DB(""), "users", bson.M{"country" : "USA"}).
         Sort("name", "_id").Limit(10)
     // If this is not the first page, set cursor:
+    // getLastCursor() represents your logic how you acquire the last cursor.
     if cursor := getLastCursor(); cursor != "" {
         q = q.Cursor(cursor)
     }
