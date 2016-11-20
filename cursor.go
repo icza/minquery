@@ -28,7 +28,7 @@ type cursorCodec struct{}
 // in URL queries without escaping.
 func (cc cursorCodec) CreateCursor(cursorData bson.D) (string, error) {
 	// bson.Marshal() never returns error, so I skip a check and early return
-	// (but I do return the error if it would even happen)
+	// (but I do return the error if it would ever happen)
 	data, err := bson.Marshal(cursorData)
 	return base64.RawURLEncoding.EncodeToString(data), err
 }
