@@ -4,6 +4,8 @@ go:
   - 1.7
   - master
 
+sudo: false
+
 services:
   - mongodb
 addons:
