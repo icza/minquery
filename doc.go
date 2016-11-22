@@ -9,7 +9,7 @@ Example using MinQuery
 Let's say we have a users collection in MongoDB modeled with this Go struct:
 
     type User struct {
-        ID      bson.ObjectID `bson:"_id"`
+        ID      bson.ObjectId `bson:"_id"`
         Name    string        `bson:"name"`
         Country string        `bson:"country"`
     }

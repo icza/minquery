@@ -11,7 +11,7 @@ Note: Only MongoDB 3.2 and newer versions support the feature used by this packa
 Let's say we have a `users` collection in MongoDB modeled with this Go `struct`:
 
     type User struct {
-        ID      bson.ObjectID `bson:"_id"`
+        ID      bson.ObjectId `bson:"_id"`
         Name    string        `bson:"name"`
         Country string        `bson:"country"`
     }

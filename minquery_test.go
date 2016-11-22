@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	mgo "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 
 	"github.com/icza/mighty"
 )
@@ -19,6 +20,12 @@ func init() {
 	}
 	bi, err := sess.BuildInfo()
 	fmt.Println(bi.Version, err)
+}
+
+type User struct {
+	ID      bson.ObjectId `bson:"_id"`
+	Name    string        `bson:"name"`
+	Country string        `bson:"country"`
 }
 
 func TestMinQuery(t *testing.T) {
