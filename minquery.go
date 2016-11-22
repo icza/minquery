@@ -3,6 +3,8 @@
 package minquery
 
 import (
+	"errors"
+
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -44,6 +46,9 @@ type MinQuery interface {
 	All(result interface{}, cursorFields ...string) (cursor string, err error)
 }
 
+// testErrValue is the error value returned for testing purposes.
+var testErrValue = errors.New("Intentional testing error")
+
 // minQuery is the MinQuery implementation.
 type minQuery struct {
 	// db is the mgo Database to use
@@ -75,6 +80,10 @@ type minQuery struct {
 
 	// min specifies the last index entry
 	min bson.D
+
+	// testError is a helper field to aid testing errors to reach 100% coverage.
+	// May only be changed from tests! Zero value means normal operation.
+	testError bool
 }
 
 // New returns a new MinQuery.
@@ -185,7 +194,11 @@ func (mq *minQuery) All(result interface{}, cursorFields ...string) (cursor stri
 		if len(cursorFields) > 0 {
 			// create cursor from the last document
 			var doc bson.M
-			if err = firstBatch[len(firstBatch)-1].Unmarshal(&doc); err != nil {
+			err = firstBatch[len(firstBatch)-1].Unmarshal(&doc)
+			if mq.testError {
+				err = testErrValue
+			}
+			if err != nil {
 				return
 			}
 			cursorData := make(bson.D, len(cursorFields))

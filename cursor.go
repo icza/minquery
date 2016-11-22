@@ -26,7 +26,7 @@ type cursorCodec struct{}
 // CreateCursor implements CursorCodec.CreateCursor().
 // The returned cursor string is web-safe, and so it's safe to include
 // in URL queries without escaping.
-func (cc cursorCodec) CreateCursor(cursorData bson.D) (string, error) {
+func (cursorCodec) CreateCursor(cursorData bson.D) (string, error) {
 	// bson.Marshal() never returns error, so I skip a check and early return
 	// (but I do return the error if it would ever happen)
 	data, err := bson.Marshal(cursorData)
@@ -34,7 +34,7 @@ func (cc cursorCodec) CreateCursor(cursorData bson.D) (string, error) {
 }
 
 // ParseCursor implements CursorCodec.ParseCursor().
-func (cc cursorCodec) ParseCursor(c string) (cursorData bson.D, err error) {
+func (cursorCodec) ParseCursor(c string) (cursorData bson.D, err error) {
 	var data []byte
 	if data, err = base64.RawURLEncoding.DecodeString(c); err != nil {
 		return
