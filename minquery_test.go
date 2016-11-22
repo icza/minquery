@@ -89,7 +89,7 @@ func TestMinQuery(t *testing.T) {
 	eq(nil, err)
 	deq(users[7:], result)
 
-	cursor, err = mq.Cursor(cursor).All(&result, cursorFields...)
+	_, err = mq.Cursor(cursor).All(&result, cursorFields...)
 	eq(nil, err)
 	eq(0, len(result))
 
