@@ -5,4 +5,10 @@ go:
   - master
 
 services:
-  - mongodb  
+  - mongodb
+addons:
+  apt:
+    sources:
+      - mongodb-3.2.precise
+    packages:
+      - mongodb-org-server
