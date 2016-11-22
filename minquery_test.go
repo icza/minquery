@@ -15,7 +15,7 @@ var sess *mgo.Session
 
 func init() {
 	var err error
-	sess, err = mgo.Dial("")
+	sess, err = mgo.Dial("mongodb://localhost/minquery")
 	if err != nil {
 		panic(err)
 	}
