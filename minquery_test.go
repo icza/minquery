@@ -102,7 +102,7 @@ func TestMinQuery(t *testing.T) {
 		{"name": "Alice", "_id": users[1].ID},
 	}, parres)
 
-	cursor, err = mq.CursorCodec(testCodec{}).All(&parres, cursorFields...)
+	_, err = mq.CursorCodec(testCodec{}).All(&parres, cursorFields...)
 	eq(nil, err)
 	deq([]bson.M{
 		{"name": "Alice", "_id": users[2].ID},
