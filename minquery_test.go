@@ -94,7 +94,7 @@ func TestMinQuery(t *testing.T) {
 	eq(0, len(result))
 
 	var parres []bson.M
-	cursor, err = mq.Sort("+name", "-_id", "").Select(bson.M{"name": 1, "_id": 1}).
+	_, err = mq.Sort("+name", "-_id", "").Select(bson.M{"name": 1, "_id": 1}).
 		Cursor("").Limit(2).All(&parres, cursorFields...)
 	eq(nil, err)
 	deq([]bson.M{
