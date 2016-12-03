@@ -64,6 +64,9 @@ type minQuery struct {
 	// sort document
 	sort bson.D
 
+	// if sort ascending
+	ascending bool
+
 	// projection document (to retrieve only selected fields)
 	projection interface{}
 
@@ -100,7 +103,8 @@ func New(db *mgo.Database, coll string, query interface{}) MinQuery {
 // Sort implements MinQuery.Sort().
 func (mq *minQuery) Sort(fields ...string) MinQuery {
 	mq.sort = make(bson.D, 0, len(fields))
-	for _, field := range fields {
+	mq.ascending = true
+	for i, field := range fields {
 		if field == "" {
 			continue
 		}
@@ -109,6 +113,9 @@ func (mq *minQuery) Sort(fields ...string) MinQuery {
 			field = field[1:]
 		} else if field[0] == '-' {
 			n, field = -1, field[1:]
+			if 0 == i {
+				mq.ascending = false
+			}
 		}
 		mq.sort = append(mq.sort, bson.DocElem{Name: field, Value: n})
 	}
@@ -195,8 +202,10 @@ func (mq *minQuery) All(result interface{}, cursorFields ...string) (cursor stri
 	limitedQuery := (queryLimit > 0)
 	if limitedQuery {
 		queryLimit++ // query one more element
-		cmd = append(cmd, bson.DocElem{Name: "limit", Value: queryLimit})
-		cmd = append(cmd, bson.DocElem{Name: "batchSize", Value: queryLimit})
+		cmd = append(cmd,
+			bson.DocElem{Name: "limit", Value: queryLimit},
+			bson.DocElem{Name: "batchSize", Value: queryLimit},
+		)
 	}
 	if mq.filter != nil {
 		cmd = append(cmd, bson.DocElem{Name: "filter", Value: mq.filter})
@@ -208,11 +217,16 @@ func (mq *minQuery) All(result interface{}, cursorFields ...string) (cursor stri
 		cmd = append(cmd, bson.DocElem{Name: "projection", Value: mq.projection})
 	}
 	if mq.min != nil {
-		// min is inclusive, skip the first (which is the previous last)
-		cmd = append(cmd,
-			bson.DocElem{Name: "skip", Value: 1},
-			bson.DocElem{Name: "min", Value: mq.min},
-		)
+		if mq.ascending {
+			// min is inclusive, skip the first (which is the previous last)
+			cmd = append(cmd,
+				bson.DocElem{Name: "skip", Value: 1},
+				bson.DocElem{Name: "min", Value: mq.min},
+			)
+		} else {
+			// max is exclusive, so there should be no skipping
+			cmd = append(cmd, bson.DocElem{Name: "max", Value: mq.min})
+		}
 	}
 
 	var res struct {
