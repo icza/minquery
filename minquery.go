@@ -7,6 +7,7 @@ import (
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"reflect"
 )
 
 // DefaultCursorCodec is the default CursorCodec value that is used if none
@@ -43,7 +44,7 @@ type MinQuery interface {
 	// All retrieves all documents from the result set into the provided slice.
 	// cursorFields lists the fields (in order) to be used to generate
 	// the returned cursor.
-	All(result interface{}, cursorFields ...string) (cursor string, err error)
+	All(result interface{}, cursorFields ...string) (cursor string, err error, hasMore bool)
 }
 
 // testErrValue is the error value returned for testing purposes.
@@ -143,10 +144,43 @@ func (mq *minQuery) CursorCodec(cc CursorCodec) MinQuery {
 	return mq
 }
 
+// Copied from mgo.Iter.All and edited
+func allButLast(iter *mgo.Iter, result interface{}) error {
+	resultv := reflect.ValueOf(result)
+	if resultv.Kind() != reflect.Ptr || resultv.Elem().Kind() != reflect.Slice {
+		panic("result argument must be a slice address")
+	}
+	slicev := resultv.Elem()
+	slicev = slicev.Slice(0, slicev.Cap())
+	elemt := slicev.Type().Elem()
+	i := 0
+	for {
+		if slicev.Len() == i {
+			elemp := reflect.New(elemt)
+			if !iter.Next(elemp.Interface()) {
+				break
+			}
+			slicev = reflect.Append(slicev, elemp.Elem())
+			slicev = slicev.Slice(0, slicev.Cap())
+		} else {
+			if !iter.Next(slicev.Index(i).Addr().Interface()) {
+				break
+			}
+		}
+		i++
+	}
+	if i > 0 {
+		resultv.Elem().Set(slicev.Slice(0, i - 1))
+	} else {
+		resultv.Elem().Set(slicev.Slice(0, i))
+	}
+	return iter.Close()
+}
+
 // All implements MinQuery.All().
-func (mq *minQuery) All(result interface{}, cursorFields ...string) (cursor string, err error) {
+func (mq *minQuery) All(result interface{}, cursorFields ...string) (cursor string, err error, hasMore bool) {
 	if mq.cursorErr != nil {
-		return "", mq.cursorErr
+		return "", mq.cursorErr, false
 	}
 
 	// Mongodb "find" reference:
@@ -154,9 +188,15 @@ func (mq *minQuery) All(result interface{}, cursorFields ...string) (cursor stri
 
 	cmd := bson.D{
 		{Name: "find", Value: mq.coll},
-		{Name: "limit", Value: mq.limit},
-		{Name: "batchSize", Value: mq.limit},
 		{Name: "singleBatch", Value: true},
+	}
+
+	queryLimit := mq.limit
+	limitedQuery := (queryLimit > 0)
+	if limitedQuery {
+		queryLimit++ // query one more element
+		cmd = append(cmd, bson.DocElem{Name: "limit", Value: queryLimit})
+		cmd = append(cmd, bson.DocElem{Name: "batchSize", Value: queryLimit})
 	}
 	if mq.filter != nil {
 		cmd = append(cmd, bson.DocElem{Name: "filter", Value: mq.filter})
@@ -185,16 +225,23 @@ func (mq *minQuery) All(result interface{}, cursorFields ...string) (cursor stri
 		} `bson:"cursor"`
 	}
 
+	hasMore = false
 	if err = mq.db.Run(cmd, &res); err != nil {
 		return
 	}
 
 	firstBatch := res.Cursor.FirstBatch
 	if len(firstBatch) > 0 {
+		// if return result num equal with queryLimit when limited query, there is more
+		hasMore = (limitedQuery && len(firstBatch) >= queryLimit)
 		if len(cursorFields) > 0 {
+			offset := 0
+			if hasMore {
+				offset = 1
+			}
 			// create cursor from the last document
 			var doc bson.M
-			err = firstBatch[len(firstBatch)-1].Unmarshal(&doc)
+			err = firstBatch[len(firstBatch) - 1 - offset].Unmarshal(&doc)
 			if mq.testError {
 				err = testErrValue
 			}
@@ -218,6 +265,11 @@ func (mq *minQuery) All(result interface{}, cursorFields ...string) (cursor stri
 	}
 
 	// Unmarshal results (FirstBatch) into the user-provided value:
-	err = mq.db.C(mq.coll).NewIter(nil, firstBatch, 0, nil).All(result)
+	if hasMore {
+		err = allButLast(mq.db.C(mq.coll).NewIter(nil, firstBatch, 0, nil), result)
+	} else {
+		err = mq.db.C(mq.coll).NewIter(nil, firstBatch, 0, nil).All(result)
+	}
 	return
 }
+
