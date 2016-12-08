@@ -78,7 +78,7 @@ The above solution using `minquery` looks like this:
     }
 
     var users []*User
-    newCursor, err := q.All(&users, "country", "name", "_id")
+    newCursor, err, hasMore := q.All(&users, "country", "name", "_id")
 
 And that's all. `newCursor` is the cursor to be used to fetch the next batch.
 
