@@ -1,5 +1,14 @@
 # minquery
 
+## Note by zhangyi (windless0530)
+
+Aside from original features suported in icza/minquery, this forked version (master) supports returning another value named 'hasMore' for callers to determine whether there still exists further results. With 'hasMore' as false there would be no need to request the next page any more.
+
+## Below are the original README content from icza/minquery
+Except the following caller example code, due to interface change:
+
+    newCursor, err, hasMore := q.All(&users, "country", "name", "_id")
+
 [![GoDoc](https://godoc.org/github.com/icza/minquery?status.svg)](https://godoc.org/github.com/icza/minquery) [![Build Status](https://travis-ci.org/icza/minquery.svg?branch=master)](https://travis-ci.org/icza/minquery) [![Go Report Card](https://goreportcard.com/badge/github.com/icza/minquery)](https://goreportcard.com/report/github.com/icza/minquery)
 
 MongoDB / `mgo.v2` query that supports _efficient_ pagination (cursors to continue listing documents where we left off).
@@ -72,7 +81,7 @@ The above solution using `minquery` looks like this:
     }
 
     var users []*User
-    newCursor, err := q.All(&users, "country", "name", "_id")
+    newCursor, err, hasMore := q.All(&users, "country", "name", "_id")
 
 And that's all. `newCursor` is the cursor to be used to fetch the next batch.
 
