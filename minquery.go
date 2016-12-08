@@ -263,7 +263,11 @@ func (mq *minQuery) All(result interface{}, cursorFields ...string) (cursor stri
 				return
 			}
 			cursorData := make(bson.D, len(cursorFields))
-			for i, cf := range cursorFields {
+			for i, cfd := range cursorFields {
+				cf := cfd
+				if '-' == cf[0] || '+' == cf[0] {
+					cf = cf[1:]
+				}
 				cursorData[i] = bson.DocElem{Name: cf, Value: doc[cf]}
 			}
 			cursor, err = mq.cursorCodec.CreateCursor(cursorData)
