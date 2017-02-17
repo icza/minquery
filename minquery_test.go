@@ -139,7 +139,7 @@ type testCodec struct {
 
 func (tc testCodec) CreateCursor(cursorData bson.D) (string, error) {
 	if tc.testError {
-		return "", testErrValue
+		return "", errTestValue
 	}
 	data, err := bson.Marshal(cursorData)
 	return hex.EncodeToString(data), err

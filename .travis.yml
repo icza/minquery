@@ -1,7 +1,7 @@
 language: go
 
 go:
-  - 1.7
+  - 1.8
   - master
 
 # Manual download and start of MongoDB 3.2.11:

@@ -46,8 +46,8 @@ type MinQuery interface {
 	All(result interface{}, cursorFields ...string) (cursor string, err error)
 }
 
-// testErrValue is the error value returned for testing purposes.
-var testErrValue = errors.New("Intentional testing error")
+// errTestValue is the error value returned for testing purposes.
+var errTestValue = errors.New("Intentional testing error")
 
 // minQuery is the MinQuery implementation.
 type minQuery struct {
@@ -196,7 +196,7 @@ func (mq *minQuery) All(result interface{}, cursorFields ...string) (cursor stri
 			var doc bson.M
 			err = firstBatch[len(firstBatch)-1].Unmarshal(&doc)
 			if mq.testError {
-				err = testErrValue
+				err = errTestValue
 			}
 			if err != nil {
 				return
