@@ -4,9 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/globalsign/mgo/bson"
 	"github.com/icza/mighty"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
 func TestDefaultCodec(t *testing.T) {
@@ -17,7 +16,7 @@ func TestDefaultCodec(t *testing.T) {
 	cd := bson.D{
 		{Name: "a", Value: 1},
 		{Name: "b", Value: "2"},
-		{Name: "c", Value: time.Date(3, 0, 0, 0, 0, 0, 0, time.Local)},
+		{Name: "c", Value: time.Date(3, 0, 0, 0, 0, 0, 0, time.UTC)},
 	}
 	cursor, err := cc.CreateCursor(cd)
 	eq(nil, err)

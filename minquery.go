@@ -5,8 +5,8 @@ package minquery
 import (
 	"errors"
 
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/globalsign/mgo"
+	"github.com/globalsign/mgo/bson"
 )
 
 // DefaultCursorCodec is the default CursorCodec value that is used if none
