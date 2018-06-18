@@ -7,10 +7,12 @@
 
 MongoDB / `mgo.v2` query that supports _efficient_ pagination (cursors to continue listing documents where we left off).
 
-Note: Only MongoDB 3.2 and newer versions support the feature used by this package.
+**Note:** Only MongoDB 3.2 and newer versions support the feature used by this package.
 
-Note #2: minquery v1.0.0 uses the `gopkg.in/mgo.v2` mgo driver which has gone unmaintained
-for a long time now. minquery v2.0.0 uses the new, community supported fork `github.com/globalsign/mgo`.
+**Note #2:** minquery [v1.0.0](https://github.com/icza/minquery/releases/tag/v1.0.0)
+uses the `gopkg.in/mgo.v2` mgo driver which has gone unmaintained
+for a long time now. minquery [v2.0.0](https://github.com/icza/minquery/releases/tag/v2.0.0)
+(tip of master) uses the new, community supported fork `github.com/globalsign/mgo`.
 It is highly recommended to switch over to `globalsign/mgo`. If you can't or don't
 want to, you may continue to use the v1.0.0 release with `gopkg.in/mgo.v2`.
 
