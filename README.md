@@ -56,7 +56,7 @@ Note: the required index for the above query would be:
         }
     )
 
-There is one problem though: the `mgo.v2` package has no support specifying this `min()`.
+There is one problem though: the `mgo` package has no support specifying this `min()`.
 
 ## Introducing `minquery`
 
