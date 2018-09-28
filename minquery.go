@@ -29,6 +29,8 @@ type MinQuery interface {
 	// and also changes the batch size to the same value.
 	Limit(n int) MinQuery
 
+	Collation(collation interface{}) MinQuery
+
 	// Cursor sets the cursor, which specifies the last index entry
 	// that was already returned, and result documents will be listed after this.
 	// Parsing a cursor may fail which is not returned. If an invalid cursor
@@ -65,6 +67,8 @@ type minQuery struct {
 
 	// projection document (to retrieve only selected fields)
 	projection interface{}
+
+	collation interface{}
 
 	// limit is the max number of results
 	limit int
@@ -126,6 +130,11 @@ func (mq *minQuery) Limit(n int) MinQuery {
 	return mq
 }
 
+func (mq *minQuery) Collation(collation interface{}) MinQuery {
+	mq.collation = collation
+	return mq
+}
+
 // Cursor implements MinQuery.Cursor().
 func (mq *minQuery) Cursor(c string) MinQuery {
 	mq.cursor = c
@@ -166,6 +175,9 @@ func (mq *minQuery) All(result interface{}, cursorFields ...string) (cursor stri
 	}
 	if mq.projection != nil {
 		cmd = append(cmd, bson.DocElem{Name: "projection", Value: mq.projection})
+	}
+	if mq.collation != nil {
+		cmd = append(cmd, bson.DocElem{Name: "collation", Value: mq.collation})
 	}
 	if mq.min != nil {
 		// min is inclusive, skip the first (which is the previous last)
