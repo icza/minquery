@@ -4,6 +4,7 @@ package minquery
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
@@ -203,7 +204,24 @@ func (mq *minQuery) All(result interface{}, cursorFields ...string) (cursor stri
 			}
 			cursorData := make(bson.D, len(cursorFields))
 			for i, cf := range cursorFields {
-				cursorData[i] = bson.DocElem{Name: cf, Value: doc[cf]}
+				cfs := strings.Split(cf, ".")
+				if len(cfs) <= 1 {
+					cursorData[i] = bson.DocElem{Name: cf, Value: doc[cf]}
+					continue
+				}
+				leafM := doc
+				var ok bool
+				for j:=0; j<len(cfs); j++ {
+					if j == len(cfs) - 1 {
+						cursorData[i] = bson.DocElem{Name: cf, Value: leafM[cfs[j]]}
+						break
+					}
+					leafM, ok = leafM[cfs[j]].(bson.M)
+					if !ok || len(leafM) <= 0 {
+						cursorData[i] = bson.DocElem{Name: cf, Value: nil}
+						break
+					}
+				}
 			}
 			cursor, err = mq.cursorCodec.CreateCursor(cursorData)
 			if err != nil {
