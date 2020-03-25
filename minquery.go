@@ -4,7 +4,6 @@ package minquery
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
@@ -148,7 +147,6 @@ func (mq *minQuery) CursorCodec(cc CursorCodec) MinQuery {
 // All implements MinQuery.All().
 func (mq *minQuery) All(result interface{}, cursorFields ...string) (cursor string, err error) {
 	if mq.cursorErr != nil {
-		fmt.Println("Error in cusror ", err.Error())
 		return "", mq.cursorErr
 	}
 
@@ -226,4 +224,3 @@ func (mq *minQuery) All(result interface{}, cursorFields ...string) (cursor stri
 
 	return
 }
-
