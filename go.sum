@@ -1,0 +1,4 @@
+github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8 h1:DujepqpGd1hyOd7aW59XpK7Qymp8iy83xq74fLr21is=
+github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8/go.mod h1:xkRDCp4j0OGD1HRkm4kmhM+pmpv3AKq5SU7GMg4oO/Q=
+github.com/icza/mighty v0.0.0-20200205104645-c377cb773678 h1:qDS615z2ayqE3jdG6SosEQknlqg5dhp3SSQ/ZPMSBZ0=
+github.com/icza/mighty v0.0.0-20200205104645-c377cb773678/go.mod h1:klfNufgs1IcVNz2fWjXufNHkhl2cqIUbFoia2580Iv4=
