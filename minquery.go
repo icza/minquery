@@ -4,6 +4,7 @@ package minquery
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
@@ -52,8 +53,8 @@ var errTestValue = errors.New("Intentional testing error")
 // minQuery is the MinQuery implementation.
 type minQuery struct {
 	// db is the mgo Database to use
-	db *mgo.Database
-
+	db   *mgo.Database
+	hint map[string]int
 	// Name of the collection
 	coll string
 
@@ -87,11 +88,12 @@ type minQuery struct {
 }
 
 // New returns a new MinQuery.
-func New(db *mgo.Database, coll string, query interface{}) MinQuery {
+func New(db *mgo.Database, coll string, query interface{}, hint map[string]int) MinQuery {
 	return &minQuery{
 		db:          db,
 		coll:        coll,
 		filter:      query,
+		hint:        hint,
 		cursorCodec: DefaultCursorCodec,
 	}
 }
@@ -146,6 +148,7 @@ func (mq *minQuery) CursorCodec(cc CursorCodec) MinQuery {
 // All implements MinQuery.All().
 func (mq *minQuery) All(result interface{}, cursorFields ...string) (cursor string, err error) {
 	if mq.cursorErr != nil {
+		fmt.Println("Error in cusror ", err.Error())
 		return "", mq.cursorErr
 	}
 
@@ -172,6 +175,7 @@ func (mq *minQuery) All(result interface{}, cursorFields ...string) (cursor stri
 		cmd = append(cmd,
 			bson.DocElem{Name: "skip", Value: 1},
 			bson.DocElem{Name: "min", Value: mq.min},
+			bson.DocElem{Name: "hint", Value: mq.hint},
 		)
 	}
 
@@ -219,5 +223,7 @@ func (mq *minQuery) All(result interface{}, cursorFields ...string) (cursor stri
 
 	// Unmarshal results (FirstBatch) into the user-provided value:
 	err = mq.db.C(mq.coll).NewIter(nil, firstBatch, 0, nil).All(result)
+
 	return
 }
+
