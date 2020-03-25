@@ -87,7 +87,13 @@ type minQuery struct {
 }
 
 // New returns a new MinQuery.
-func New(db *mgo.Database, coll string, query interface{}, hint map[string]int) MinQuery {
+func New(db *mgo.Database, coll string, query interface{}) MinQuery {
+	return NewWithHint(db, coll, query, nil)
+}
+
+// NewWithHint returns a new MinQuery with index hint.
+// MongoDB 4.2 requires an index hint.
+func NewWithHint(db *mgo.Database, coll string, query interface{}, hint map[string]int) MinQuery {
 	return &minQuery{
 		db:          db,
 		coll:        coll,
@@ -173,8 +179,10 @@ func (mq *minQuery) All(result interface{}, cursorFields ...string) (cursor stri
 		cmd = append(cmd,
 			bson.DocElem{Name: "skip", Value: 1},
 			bson.DocElem{Name: "min", Value: mq.min},
-			bson.DocElem{Name: "hint", Value: mq.hint},
 		)
+		if mq.hint != nil {
+			cmd = append(cmd, bson.DocElem{Name: "hint", Value: mq.hint})
+		}
 	}
 
 	var res struct {
