@@ -4,6 +4,8 @@ package minquery
 
 import (
 	"errors"
+	"strconv"
+	"strings"
 
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
@@ -212,8 +214,9 @@ func (mq *minQuery) All(result interface{}, cursorFields ...string) (cursor stri
 				return
 			}
 			cursorData := make(bson.D, len(cursorFields))
-			for i, cf := range cursorFields {
-				cursorData[i] = bson.DocElem{Name: cf, Value: doc[cf]}
+			err = mq.getCursorData(cursorFields, cursorData, doc)
+			if err != nil {
+				return
 			}
 			cursor, err = mq.cursorCodec.CreateCursor(cursorData)
 			if err != nil {
@@ -231,4 +234,31 @@ func (mq *minQuery) All(result interface{}, cursorFields ...string) (cursor stri
 	err = mq.db.C(mq.coll).NewIter(nil, firstBatch, 0, nil).All(result)
 
 	return
+}
+
+func (mq *minQuery) getCursorData(cursorFields []string, cursorData bson.D, doc bson.M) error {
+	for i, cf := range cursorFields {
+		cfs := strings.Split(cf, ".")
+		if len(cfs) <= 1 {
+			cursorData[i] = bson.DocElem{Name: cf, Value: doc[cf]}
+			continue
+		}
+		leafM := doc[cfs[0]]
+		for j:=1; j<len(cfs); j++ {
+			switch expr := leafM.(type) {
+			case bson.M:
+				leafM = expr[cfs[j]]
+			case []interface{}:
+				index, err :=strconv.Atoi(cfs[j])
+				if err != nil {
+					return err
+				}
+				leafM = expr[index]
+			default:
+				leafM = expr
+			}
+		}
+		cursorData[i] = bson.DocElem{Name: cf, Value: leafM}
+	}
+	return nil
 }
