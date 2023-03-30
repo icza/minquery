@@ -1,7 +1,7 @@
 # minquery
 
-[![Build Status](https://travis-ci.org/icza/minquery.svg?branch=master)](https://travis-ci.org/icza/minquery)
-[![GoDoc](https://godoc.org/github.com/icza/minquery?status.svg)](https://godoc.org/github.com/icza/minquery)
+![Build Status](https://github.com/icza/minquery/actions/workflows/go.yml/badge.svg)
+[![Go Reference](https://pkg.go.dev/badge/github.com/icza/minquery.svg)](https://pkg.go.dev/github.com/icza/minquery)
 [![Go Report Card](https://goreportcard.com/badge/github.com/icza/minquery)](https://goreportcard.com/report/github.com/icza/minquery)
 [![codecov](https://codecov.io/gh/icza/minquery/branch/master/graph/badge.svg)](https://codecov.io/gh/icza/minquery)
 
