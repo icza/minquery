@@ -13,6 +13,9 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        mongodb-version: ['4.2', '4.4', '5.0']
     steps:
     - uses: actions/checkout@v3
 
@@ -23,6 +26,11 @@ jobs:
 
     - name: Build
       run: go build -v ./...
+
+    - name: Start MongoDB
+      uses: supercharge/mongodb-github-action@1.8.0
+      with:
+        mongodb-version: ${{ matrix.mongodb-version }}
 
     - name: Test
       run: go test -v ./...
