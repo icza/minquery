@@ -71,7 +71,12 @@ func TestMinQuery(t *testing.T) {
 		eq(nil, c.Insert(u))
 	}
 
-	mq := New(sess.DB(""), "users", bson.M{"country": "US"}).
+	mq := NewWithHint(
+		sess.DB(""),
+		"users",
+		bson.M{"country": "US"},
+		map[string]int{"name": 1, "_id": 1},
+	).
 		Sort("name", "_id").Limit(3)
 
 	var result []*User
