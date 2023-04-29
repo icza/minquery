@@ -38,6 +38,33 @@ func init() {
 	if _, err := c.RemoveAll(nil); err != nil {
 		panic(err)
 	}
+
+	mgoCompany := sess.DB("").C("company")
+	if err := mgoCompany.EnsureIndex(mgo.Index{Key: []string{"name", "boos"}}); err != nil {
+		panic(err)
+	}
+	if err := mgoCompany.EnsureIndex(mgo.Index{Key: []string{"name", "boos.name"}}); err != nil {
+		panic(err)
+	}
+	if err := mgoCompany.EnsureIndex(mgo.Index{Key: []string{"subsidiary"}}); err != nil {
+		panic(err)
+	}
+	if err := mgoCompany.EnsureIndex(mgo.Index{Key: []string{"subsidiary.0"}}); err != nil {
+		panic(err)
+	}
+	if _, err := mgoCompany.RemoveAll(nil); err != nil {
+		panic(err)
+	}
+}
+
+func clearDB() {
+	c := sess.DB("")
+	if _, err := c.C("users").RemoveAll(nil); err != nil {
+		panic(err)
+	}
+	if _, err := c.C("company").RemoveAll(nil); err != nil {
+		panic(err)
+	}
 }
 
 type User struct {
@@ -46,7 +73,15 @@ type User struct {
 	Country string        `bson:"country"`
 }
 
+type Company struct {
+	ID      	bson.ObjectId	`bson:"_id"`
+	Name		string			`bson:"name"`
+	Boos		User			`bson:"boos"`
+	Subsidiary	[]string		`bson:"subsidiary"`
+}
+
 func TestMinQuery(t *testing.T) {
+	clearDB()
 	eq, neq, deq := mighty.Eq(t), mighty.Neq(t), mighty.Deq(t)
 	_, _ = eq, neq
 
@@ -135,6 +170,129 @@ func TestMinQuery(t *testing.T) {
 		All(&parres, cursorFields...)
 	neq(nil, err)
 	mq.(*minQuery).testError = false
+}
+
+func TestMinQueryMultiIndex(t *testing.T) {
+	clearDB()
+	eq, neq, deq := mighty.Eq(t), mighty.Neq(t), mighty.Deq(t)
+	_, _ = eq, neq
+
+	c := sess.DB("").C("company")
+
+	// Insert test documents:
+	companies := []*Company{
+		{Name: "amazon", Boos: User{ID: bson.NewObjectId(), Name: "Dakota", Country: "US"}, Subsidiary: []string{}},
+		{Name: "apple", Boos: User{ID: bson.NewObjectId(), Name: "Fae", Country: "US"}, Subsidiary: []string{}},
+		{Name: "facebook", Boos: User{ID: bson.NewObjectId(), Name: "Chloe", Country: "UK"}, Subsidiary: []string{}},
+		{Name: "google", Boos: User{ID: bson.NewObjectId(), Name: "Aaron", Country: "UK"}, Subsidiary: []string{}},
+		{Name: "honer", Boos: User{ID: bson.NewObjectId(), Name: "Ed", Country: "US"}, Subsidiary: []string{}},
+		{Name: "videos", Boos: User{ID: bson.NewObjectId(), Name: "Glan", Country: "US"}, Subsidiary: []string{}},
+		{Name: "zMind", Boos: User{ID: bson.NewObjectId(), Name: "len", Country: "US"}, Subsidiary: []string{}},
+	}
+
+	cursorFields := []string{"name", "boos"}
+
+	for _, u := range companies {
+		u.ID = bson.NewObjectId()
+		eq(nil, c.Insert(u))
+	}
+
+	mq := New(sess.DB(""), "company", bson.M{}).
+		Sort("name", "boos").Limit(3)
+	var result []*Company
+
+	cursor, err := mq.All(&result, cursorFields...)
+	eq(nil, err)
+	deq(companies[0:3], result)
+
+	cursor, err = mq.Cursor(cursor).All(&result, cursorFields...)
+	eq(nil, err)
+	deq(companies[3:6], result)
+
+	cursor, err = mq.Cursor(cursor).All(&result, cursorFields...)
+	eq(nil, err)
+	deq(companies[6:], result)
+}
+
+func TestMinQuerySubDocIndex(t *testing.T) {
+	clearDB()
+	eq, neq, deq := mighty.Eq(t), mighty.Neq(t), mighty.Deq(t)
+	_, _ = eq, neq
+
+	c := sess.DB("").C("company")
+
+	// Insert test documents:
+	companies := []*Company{
+		{Name: "amazon", Boos: User{ID: bson.NewObjectId(), Name: "Dakota", Country: "US"}, Subsidiary: []string{}},
+		{Name: "apple", Boos: User{ID: bson.NewObjectId(), Name: "Fae", Country: "US"}, Subsidiary: []string{}},
+		{Name: "facebook", Boos: User{ID: bson.NewObjectId(), Name: "Chloe", Country: "UK"}, Subsidiary: []string{}},
+		{Name: "google", Boos: User{ID: bson.NewObjectId(), Name: "Aaron", Country: "UK"}, Subsidiary: []string{}},
+		{Name: "honer", Boos: User{ID: bson.NewObjectId(), Name: "Ed", Country: "US"}, Subsidiary: []string{}},
+		{Name: "videos", Boos: User{ID: bson.NewObjectId(), Name: "Glan", Country: "US"}, Subsidiary: []string{}},
+		{Name: "zMind", Boos: User{ID: bson.NewObjectId(), Name: "len", Country: "US"}, Subsidiary: []string{}},
+	}
+
+	cursorFields := []string{"name", "boos.name"}
+
+	for _, u := range companies {
+		u.ID = bson.NewObjectId()
+		eq(nil, c.Insert(u))
+	}
+
+	mq := New(sess.DB(""), "company", bson.M{}).
+		Sort("name", "boos.name").Limit(3)
+	var result []*Company
+
+	cursor, err := mq.All(&result, cursorFields...)
+	eq(nil, err)
+	deq(companies[0:3], result)
+
+	cursor, err = mq.Cursor(cursor).All(&result, cursorFields...)
+	eq(nil, err)
+	deq(companies[3:6], result)
+
+	cursor, err = mq.Cursor(cursor).All(&result, cursorFields...)
+	eq(nil, err)
+	deq(companies[6:], result)
+}
+
+func TestMinQueryArrayMemberIndex(t *testing.T) {
+	clearDB()
+	eq, neq, deq := mighty.Eq(t), mighty.Neq(t), mighty.Deq(t)
+	_, _ = eq, neq
+
+	c := sess.DB("").C("company")
+
+	companies := []*Company{
+		{Name: "amazon", Boos: User{ID: bson.NewObjectId()}, Subsidiary: []string{"ama", "zon"}},
+		{Name: "apple", Boos: User{ID: bson.NewObjectId()}, Subsidiary: []string{"app", "le"}},
+		{Name: "facebook", Boos: User{ID: bson.NewObjectId()}, Subsidiary: []string{"face", "book"}},
+		{Name: "google", Boos: User{ID: bson.NewObjectId()}, Subsidiary: []string{"goo", "gle"}},
+		{Name: "honer", Boos: User{ID: bson.NewObjectId()}, Subsidiary: []string{"hon", "er"}},
+		{Name: "videos", Boos: User{ID: bson.NewObjectId()}, Subsidiary: []string{"video", "s"}},
+	}
+
+	cursorFields := []string{"subsidiary.0"}
+
+	for _, u := range companies {
+		u.ID = bson.NewObjectId()
+		eq(nil, c.Insert(u))
+	}
+	mq := New(sess.DB(""), "company", bson.M{}).
+		Sort("subsidiary.0").Limit(3)
+	var result []*Company
+
+	cursor, err := mq.All(&result, cursorFields...)
+	eq(nil, err)
+	deq(companies[0:3], result)
+
+	cursor, err = mq.Cursor(cursor).All(&result, cursorFields...)
+	eq(nil, err)
+	deq(companies[3:6], result)
+
+	cursor, err = mq.Cursor(cursor).All(&result, cursorFields...)
+	eq(nil, err)
+	deq(companies[6:], result)
 }
 
 type testCodec struct {
